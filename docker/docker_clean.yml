@@ -1,0 +1,27 @@
+---
+- name: clean all docker container, image
+#hosts: web
+  hosts: all
+  become: true
+  become_user: root
+  become_method: su
+  gather_facts: false
+  connection: ssh
+
+  vars:
+    #image_name: 175.126.56.230:5000/nginx
+    #image_tag: latest
+    #container_name: nginx_skp
+
+  tasks:
+    - name: delete container
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}:{{ image_tag }}"
+        state: absent
+
+    - name: delete images
+      docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        state: absent

@@ -1,0 +1,37 @@
+---
+- name: docker deploy from private repo. to hosts
+  #hosts: web
+  hosts: all
+  become: true
+  become_user: root
+  become_method: su
+  gather_facts: false
+  connection: ssh
+
+  vars:
+    #image_name: 175.126.56.230:5000/nginx
+    #image_tag: latest
+    #container_name: nginx_skp
+
+  tasks:
+    - name: Start Docker Engine
+      systemd:
+        name: docker
+        state: started
+
+    - name: Pull Docker Image
+      docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+
+    - name: Run Docker Container
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}:{{ image_tag }}"
+        state: started
+
+        volumes:
+          - /root/nginx_conf:/tmp
+
+        ports:
+          - 80:80

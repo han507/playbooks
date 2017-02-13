@@ -1,0 +1,108 @@
+---
+- name: Create a guest VM through vCenter.
+  hosts: vmware
+  gather_facts: false
+  connection: local
+
+  vars:
+    vcenter_hostname: ****
+    vcenter_user: ****
+    vcenter_pass: ****
+    datacenter: PCSp
+    cluster: vSAN
+    folder: 1002350
+    esxi_hostname: pcsp-proto02.ad.proto.skp
+    vm_templete: skp_centos7
+
+    #guest_hostname: svc-host-03
+    #guest_name: "svc-host-03 (unknown)"
+    #guest_ip: 175.126.56.223
+    guest_netmask: 255.255.255.0
+    guest_gateway: 175.126.56.1
+
+  tasks:
+  - name: Clone template and customize
+    vmware_guest:
+      validate_certs: no
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      datacenter: "{{ datacenter }}"
+      cluster: "{{ cluster }}"
+      #esxi_hostname: "{{ esxi_hostname }}"
+      name: "{{ guest_name }}"
+      template: "{{ vm_templete }}"
+
+      networks:
+      - name: 175.126.56.X
+        ip: "{{ guest_ip }}"
+        netmask: "{{ guest_netmask }}"
+        gateway: "{{ guest_gateway }}"
+        #device_type: vmxnet3
+        dns_servers:
+          - 8.8.8.8
+          - 8.8.4.4
+
+      customization:
+        hostname: "{{ guest_hostname }}"
+        domain: skp
+        dns_servers:
+          - 8.8.8.8
+          - 8.8.4.4
+
+      wait_for_ip_address: yes
+
+      state: poweredoff
+
+  - name: Guest VM shutdown
+    vsphere_guest:
+      vcenter_hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      validate_certs: no
+      guest: "{{ guest_name }}"
+      state: powered_off
+
+  - name: Modify guest config
+    vsphere_guest:
+      vcenter_hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      validate_certs: no
+      cluster: "{{ cluster }}"
+      guest: "{{ guest_name }}"
+      state: reconfigured
+
+      vm_extra_config:
+        notes: This is a test VM
+        folder: 1002350
+
+      vm_disk:
+        disk1:
+          datastore: vsanDatastore
+          type: thin
+          size_gb: 40 # 용량을 지정 하지 않으면 에러 발생 (_아쉬운부분_)
+
+      vm_nic:
+        nic1:
+          network: 175.126.56.X
+          network_type: dvs
+
+      vm_hardware:
+        memory_mb: 4096
+        num_cpus: 4
+        #osid: centos64Guest
+        #scsi: paravirtual
+
+      esxi:
+        datacenter: "{{ datacenter }}"
+        #hostname: pcsp-proto02.ad.proto.skp
+
+  - name: Guest VM startup
+    vsphere_guest:
+      vcenter_hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_pass }}"
+      validate_certs: no
+      guest: "{{ guest_name }}"
+      state: powered_on
