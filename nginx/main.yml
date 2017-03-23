@@ -1,0 +1,6 @@
+- hosts: all
+  user: moo
+  sudo: yes
+  become: yes
+  roles:
+    - nginx

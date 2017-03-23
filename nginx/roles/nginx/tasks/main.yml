@@ -1,0 +1,6 @@
+- name: install nginx yum packages
+  yum: 
+    name: nginx-1:1.10.2-1.el7
+    state: installed 
+
+

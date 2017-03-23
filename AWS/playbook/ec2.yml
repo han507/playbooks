@@ -1,0 +1,21 @@
+---
+- name: Provision an EC2 node
+  hosts: local
+  connection: local
+
+  tasks:
+  - name: Launch Instance
+    ec2:
+      aws_access_key: AKIAJVZLARFDOOWXAU2A
+      aws_secret_key: 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
+      region: ap-northeast-2
+      #key_name: moomoo
+      instance_type: t2.micro
+      image: ami-44db152a
+      wait: yes
+      group: launch-wizard-4
+      count: 2
+      instance_tags:
+        Name: ansible
+        User: moo
+        Group: moo_group
