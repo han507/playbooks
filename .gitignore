@@ -1,5 +1,4 @@
-.gitignore
 *.DS_Store
-*hosts
-*accessKeys.csv
-*moomoo.pem
+vmware/
+openstack/
+AWS/
